@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Galaxia</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #00000a; /* Un fondo de espacio profundo */
+        }
+
+        #particle-canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray;
+
+        // Clase para una partícula estelar
+        class Particle {
+            constructor(x, y, size, color, velocity) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.color = color;
+                this.velocity = velocity;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+            }
+
+            update() {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // Calcular la fuerza de gravedad hacia el centro
+                const dx = centerX - this.x;
+                const dy = centerY - this.y;
+                const distanceSq = dx * dx + dy * dy;
+
+                // Evitar la singularidad en el centro
+                if (distanceSq < 1) return;
+
+                const distance = Math.sqrt(distanceSq);
+
+                // La fuerza de gravedad simple
+                const gravity = 0.05;
+                const forceX = (dx / distance) * gravity;
+                const forceY = (dy / distance) * gravity;
+
+                this.velocity.x += forceX;
+                this.velocity.y += forceY;
+
+                // Añadir un poco de rozamiento para que no se descontrole
+                this.velocity.x *= 0.99;
+                this.velocity.y *= 0.99;
+
+                // Actualizar posición
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+
+                this.draw();
+            }
+        }
+
+        // Función de inicialización
+        function init() {
+            particlesArray = [];
+            const numberOfParticles = 500; // Más estrellas para una galaxia más densa
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const colors = ['#FFFFFF', '#FFD700', '#ADD8E6', '#E6E6FA', '#FCA5A5'];
+
+            for (let i = 0; i < numberOfParticles; i++) {
+                const radius = Math.random() * (canvas.width / 3);
+                const angle = Math.random() * Math.PI * 2;
+
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                const size = Math.random() * 1.5 + 0.5;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+
+                // Calcular velocidad orbital inicial
+                const speed = 0.5 + Math.random() * 0.5;
+                const velocity = {
+                    x: -Math.sin(angle) * speed,
+                    y: Math.cos(angle) * speed
+                };
+
+                particlesArray.push(new Particle(x, y, size, color, velocity));
+            }
+        }
+
+        // Bucle de animación
+        function animate() {
+            // Fondo semitransparente para crear un efecto de estela
+            ctx.fillStyle = 'rgba(0, 0, 10, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // Event listener para redimensionar
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            init();
+        });
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
