@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Alimentos (Cantidades) | RH-RA-0001</title>
+    <!-- Librerías para generar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #002654;
+            --secondary-color: #005bb5;
+            --bg-color: #f4f4f9;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        header {
+            border-bottom: 3px solid var(--primary-color);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+        }
+
+        h1 { margin: 0; color: var(--primary-color); font-size: 1.6rem; }
+        h2 { margin-top: 5px; color: #666; font-size: 1rem; font-weight: normal; }
+
+        .form-section {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            margin: -20px -20px 20px -20px; /* Bleed to edges */
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        input[type="text"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* Estilos para la selección de tipo de comida */
+        .meal-selector {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meal-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            opacity: 0.6; /* Disabled state look */
+            pointer-events: none; /* Disable clicks by default */
+        }
+
+        .meal-btn.active-time {
+            opacity: 1;
+            border-color: #aaa;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .meal-btn.selected {
+            background-color: #e3f2fd;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        /* Estilos para el Constructor de Menú con Cantidades */
+        .menu-category {
+            margin-bottom: 20px;
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            color: var(--secondary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .item-name {
+            flex-grow: 1;
+        }
+
+        .item-qty {
+            width: 80px !important; /* Force width */
+            text-align: center;
+            margin-left: 15px;
+        }
+
+        .total-summary {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        button.submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button.submit-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .helper-text { font-size: 0.85rem; color: #666; margin-top: 4px; }
+        .error-msg { color: #d32f2f; font-size: 0.9rem; margin-top: 5px; display: none; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Solicitud de Alimentos | Pedidos Grupales</h1>
+        <h2>RH-RA-0001 (Versión Cantidades)</h2>
+    </header>
+
+    <form id="cateringForm">
+
+        <div class="form-section">
+            <div class="section-header">1. Detalles del Evento</div>
+            <div class="grid-3">
+                <div>
+                    <label>Fecha</label>
+                    <input type="date" id="fecha" required>
+                </div>
+                <div>
+                    <label>Hora de Servicio</label>
+                    <input type="time" id="hora" required>
+                    <div id="horaError" class="error-msg"></div>
+                </div>
+                <div>
+                    <label>Cantidad de Personas (Total)</label>
+                    <input type="number" id="pax" min="1" placeholder="Ej: 10" required>
+                </div>
+            </div>
+            <br>
+            <div class="grid-3">
+                <div>
+                    <label>Tipo de Reunión</label>
+                    <select id="tipoReunion" required>
+                        <option value="">-- Seleccionar --</option>
+                        <option value="Trabajo">Reunión de Trabajo</option>
+                        <option value="Visita">Visita Externa / Clientes</option>
+                        <option value="Capacitacion">Capacitación</option>
+                        <option value="Auditoria">Auditoría</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Centro de Costo / Área</label>
+                    <input type="text" id="centroCosto" placeholder="Ej: Recursos Humanos">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-header">2. Selección de Menú (Según Horario)</div>
+            <div class="meal-selector" id="mealSelector">
+                <div class="meal-btn" data-meal="desayuno" id="btnDesayuno">
+                    ☕ Desayuno<br><small>07:00 - 09:00</small>
+                </div>
+                <div class="meal-btn" data-meal="almuerzo" id="btnAlmuerzo">
+                    🍽️ Almuerzo<br><small>12:00 - 14:00</small>
+                </div>
+                <div class="meal-btn" data-meal="cena" id="btnCena">
+                    🌙 Cena<br><small>18:00 - 20:00</small>
+                </div>
+                <div class="meal-btn" data-meal="refrigerio" id="btnRefrigerio">
+                    🍪 Refrigerio<br><small>24 Horas</small>
+                </div>
+            </div>
+            <p class="helper-text" id="mealHelper">Selecciona una hora arriba para habilitar los menús.</p>
+        </div>
+
+        <div class="form-section" id="menuBuilderSection" style="display:none;">
+            <div class="section-header">3. Define las Cantidades</div>
+            <p style="margin-bottom: 20px;">Ingresa la cantidad requerida para cada ítem. Deja en 0 lo que no necesites.</p>
+
+            <div id="dynamicMenuGrid" class="grid-3">
+                </div>
+
+            <div style="margin-top: 25px;">
+                <label>Observaciones o Dietas Especiales</label>
+                <textarea id="notas" rows="3" placeholder="Ej: 2 personas son alérgicas al maní..."></textarea>
+            </div>
+
+            <div id="liveSummary" class="total-summary">
+                <strong>Resumen del Pedido:</strong>
+                <ul id="summaryList" style="margin: 10px 0; padding-left: 20px;"></ul>
+                <div id="warningPax" style="color: #e65100; font-weight: bold; display:none;">
+                    ⚠️ Atención: La suma de platos fuertes no coincide con la cantidad de personas.
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Confirmar Pedido y Generar PDF</button>
+    </form>
+</div>
+
+<script>
+    // --- DATOS DEL MENÚ ---
+    const menusDB = {
+        desayuno: {
+            "Platos Fuertes": ["Huevos Revueltos", "Huevos Estrellados", "Omelette de Jamón", "Desayuno Típico"],
+            "Guarniciones": ["Casamiento (Arroz/Frijol)", "Frijoles Fritos", "Plátano Frito", "Queso/Crema", "Pan Tostado"],
+            "Bebidas": ["Café Negro", "Café con Leche", "Jugo de Naranja", "Té", "Gaseosa"],
+            "Postre": ["Fruta de Temporada", "Yogurt"]
+        },
+        almuerzo: {
+            "Platos Fuertes": ["Pollo Encebollado", "Carne Asada", "Filete de Pescado", "Pasta Alfredo"],
+            "Guarniciones": ["Arroz Blanco", "Vegetales Salteados", "Puré de Papas", "Ensalada Verde"],
+            "Bebidas": ["Refresco Natural", "Soda", "Agua", "Té Helado"],
+            "Postre": ["Fruta", "Gelatina", "Pastel"]
+        },
+        cena: {
+            "Platos Fuertes": ["Tacos de Pollo", "Pupusas (Revueltas)", "Pupusas (Queso)", "Sándwich Club"],
+            "Guarniciones": ["Salsa y Curtido", "Papas Fritas", "Escabeche"],
+            "Bebidas": ["Café", "Chocolate Caliente", "Té"]
+        },
+        refrigerio: {
+            "Snacks Salados": ["Sandwich de Jamón", "Pastelito de Carne", "Croissant"],
+            "Snacks Dulces": ["Galleta", "Muffin", "Yogurt con Granola"],
+            "Bebidas": ["Café", "Botella de Agua", "Jugo en Caja"],
+              "Postre": ["Fruta de Temporada", "Yogurt"]
+        }
+    };
+
+    // --- VARIABLES GLOBALES ---
+    const timeInput = document.getElementById('hora');
+    const mealBtns = document.querySelectorAll('.meal-btn');
+    const menuSection = document.getElementById('menuBuilderSection');
+    const gridContainer = document.getElementById('dynamicMenuGrid');
+    const summaryList = document.getElementById('summaryList');
+    const liveSummary = document.getElementById('liveSummary');
+
+    let currentMealType = null;
+
+    // --- 1. LÓGICA DE HORARIOS ---
+    timeInput.addEventListener('change', function() {
+        const time = this.value;
+        if(!time) return;
+
+        const [h, m] = time.split(':').map(Number);
+        const floatTime = h + m/60;
+
+        // Reset
+        mealBtns.forEach(btn => {
+            btn.classList.remove('active-time', 'selected');
+            // btn.onclick = null; // Remove old listeners ideally, but we handle logic inside
+        });
+        menuSection.style.display = 'none';
+        currentMealType = null;
+
+        // Habilitar según reglas
+        let activeMeals = [];
+
+        // Desayuno: 7-8
+        if (floatTime >= 7 && floatTime < 8) activeMeals.push('desayuno');
+        // Almuerzo: 12-14
+        if (floatTime >= 12 && floatTime < 14) activeMeals.push('almuerzo');
+        // Cena: 18-20
+        if (floatTime >= 18 && floatTime < 20) activeMeals.push('cena');
+        // Refrigerio: Siempre
+        activeMeals.push('refrigerio');
+
+        // Activar visualmente botones disponibles
+        activeMeals.forEach(type => {
+            const btn = document.querySelector(`.meal-btn[data-meal="${type}"]`);
+            if(btn) btn.classList.add('active-time');
+        });
+
+        document.getElementById('mealHelper').textContent =
+            activeMeals.length > 1
+            ? "Horario válido. Selecciona una de las opciones habilitadas arriba."
+            : "Solo refrigerios disponibles en este horario.";
+    });
+
+    // --- 2. SELECCIÓN DE TIPO DE COMIDA ---
+    mealBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!this.classList.contains('active-time')) return;
+
+            // Estilos selección
+            mealBtns.forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+
+            // Renderizar menú
+            const mealType = this.getAttribute('data-meal');
+            currentMealType = mealType;
+            renderMenuInputs(mealType);
+        });
+    });
+
+    // --- 3. RENDERIZADO DE INPUTS ---
+    function renderMenuInputs(type) {
+        menuSection.style.display = 'block';
+        gridContainer.innerHTML = '';
+        summaryList.innerHTML = '';
+        liveSummary.style.display = 'none';
+
+        const data = menusDB[type];
+
+        // Crear columnas por categoría (Platos, Bebidas, etc.)
+        for (const [category, items] of Object.entries(data)) {
+            const col = document.createElement('div');
+            col.className = 'menu-category';
+
+            const title = document.createElement('div');
+            title.className = 'category-title';
+            title.textContent = category;
+            col.appendChild(title);
+
+            items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+
+                const label = document.createElement('span');
+                label.className = 'item-name';
+                label.textContent = item;
+
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'item-qty';
+                input.min = '0';
+                input.value = ''; // Empty by default
+                input.placeholder = '0';
+                input.dataset.name = item;
+
+                // Evento para actualizar resumen
+                input.addEventListener('input', updateSummary);
+
+                row.appendChild(label);
+                row.appendChild(input);
+                col.appendChild(row);
+            });
+
+            gridContainer.appendChild(col);
+        }
+    }
+
+    // --- 4. ACTUALIZAR RESUMEN EN VIVO ---
+    function updateSummary() {
+        const inputs = document.querySelectorAll('.item-qty');
+        let hasItems = false;
+        let summaryHTML = '';
+        let totalPlates = 0;
+
+        inputs.forEach(input => {
+            const val = parseInt(input.value);
+            if (val > 0) {
+                hasItems = true;
+                summaryHTML += `<li><strong>${val}</strong> x ${input.dataset.name}</li>`;
+                // Simple lógica para contar platos principales (aproximado)
+                // En un sistema real, marcaríamos qué items son "Principales" en la BD
+                totalPlates += val;
+            }
+        });
+
+        if (hasItems) {
+            liveSummary.style.display = 'block';
+            summaryList.innerHTML = summaryHTML;
+        } else {
+            liveSummary.style.display = 'none';
+        }
+    }
+
+    // --- 5. ENVÍO Y GENERACIÓN DE PDF ---
+    document.getElementById('cateringForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Recoger datos finales
+        const inputs = document.querySelectorAll('.item-qty');
+        let orderDetails = [];
+        let tableData = [];
+
+        inputs.forEach(input => {
+            const val = parseInt(input.value);
+            if (val > 0) {
+                orderDetails.push(`${val} x ${input.dataset.name}`);
+                tableData.push([input.dataset.name, val]);
+            }
+        });
+
+        if (orderDetails.length === 0) {
+            alert("⚠️ Por favor ingresa cantidades en al menos un platillo.");
+            return;
+        }
+
+        const fecha = document.getElementById('fecha').value;
+        const hora = document.getElementById('hora').value;
+        const pax = document.getElementById('pax').value;
+        const tipoReunion = document.getElementById('tipoReunion').value;
+        const centroCosto = document.getElementById('centroCosto').value || 'N/A';
+        const notas = document.getElementById('notas').value;
+
+        // --- Generación del PDF con jsPDF ---
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Encabezado
+        doc.setFillColor(0, 38, 84); // Azul oscuro corporativo
+        doc.rect(0, 0, 210, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("SOLICITUD DE ALIMENTOS", 14, 20);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("RH-RA-0001", 180, 20);
+
+        // Información del Evento
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        doc.text("Detalles del Evento", 14, 40);
+        doc.setDrawColor(200);
+        doc.line(14, 42, 196, 42);
+
+        doc.setFontSize(10);
+        doc.text(`Fecha: ${fecha}`, 14, 50);
+        doc.text(`Hora de Servicio: ${hora}`, 100, 50);
+        doc.text(`Personas (Pax): ${pax}`, 14, 58);
+        doc.text(`Tipo de Reunión: ${tipoReunion}`, 100, 58);
+        doc.text(`Centro de Costo: ${centroCosto}`, 14, 66);
+        doc.text(`Menú Seleccionado: ${currentMealType.toUpperCase()}`, 100, 66);
+
+        // Tabla de Pedidos
+        doc.text("Detalle del Menú", 14, 80);
+
+        doc.autoTable({
+            startY: 85,
+            head: [['Ítem / Platillo', 'Cantidad']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [0, 91, 181] }, // Azul secundario
+            styles: { fontSize: 10 },
+            columnStyles: {
+                0: { cellWidth: 140 },
+                1: { cellWidth: 40, halign: 'center' }
+            }
+        });
+
+        // Observaciones
+        let finalY = doc.lastAutoTable.finalY + 10;
+        if (notas) {
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Observaciones / Dietas Especiales:", 14, finalY);
+            doc.setFont("helvetica", "italic");
+
+            const splitNotas = doc.splitTextToSize(notas, 180);
+            doc.text(splitNotas, 14, finalY + 6);
+            finalY += splitNotas.length * 5 + 10;
+        }
+
+        // Pie de página / Firmas
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text("__________________________", 30, finalY + 30);
+        doc.text("Firma Solicitante", 45, finalY + 35);
+
+        doc.text("__________________________", 130, finalY + 30);
+        doc.text("Firma Autorización", 145, finalY + 35);
+
+        // Guardar PDF
+        doc.save(`Pedido_Alimentos_${fecha}_${hora.replace(':','')}.pdf`);
+
+        // Mensaje de éxito
+        alert("✅ Pedido generado correctamente. Se ha descargado el PDF con el detalle.");
+    });
+
+</script>
+
+</body>
+</html>
