@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitud de Alimentos (Cantidades) | RH-RA-0001</title>
+    <title>Solicitud de Alimentos | Pedidos Grupales</title>
     <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -37,6 +37,9 @@
             border-bottom: 3px solid var(--primary-color);
             margin-bottom: 25px;
             padding-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         h1 { margin: 0; color: var(--primary-color); font-size: 1.6rem; }
@@ -58,6 +61,12 @@
             border-radius: 8px 8px 0 0;
             font-weight: bold;
             color: var(--primary-color);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
         .grid-3 {
@@ -118,35 +127,38 @@
             box-shadow: 0 0 0 1px var(--primary-color);
         }
 
-        /* Estilos para el Constructor de Menú con Cantidades */
-        .menu-category {
-            margin-bottom: 20px;
+        /* Estilos para el Menú de Combos */
+        .combo-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #fafafa;
         }
 
-        .category-title {
-            font-size: 1.1rem;
-            color: var(--secondary-color);
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-        }
-
-        .item-row {
+        .combo-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px dashed #eee;
+            margin-bottom: 10px;
         }
 
-        .item-name {
-            flex-grow: 1;
+        .combo-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.05rem;
+        }
+
+        .combo-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            font-style: italic;
         }
 
         .item-qty {
-            width: 80px !important; /* Force width */
+            width: 80px !important;
             text-align: center;
-            margin-left: 15px;
         }
 
         .total-summary {
@@ -184,17 +196,44 @@
 
 <div class="container">
     <header>
-        <h1>Solicitud de Alimentos | Pedidos Grupales</h1>
-        <h2>RH-RA-0001 (Versión Cantidades)</h2>
+        <div>
+            <h1>Solicitud de Alimentos</h1>
+            <h2>El Salvador Socks | Pedidos Grupales</h2>
+        </div>
+        <div style="text-align: right; font-size: 0.9rem; color: #666;">
+            <strong>RH-RA-0001</strong><br>
+            Rev. 2024
+        </div>
     </header>
 
     <form id="cateringForm">
 
         <div class="form-section">
             <div class="section-header">1. Detalles del Evento</div>
+
+            <!-- Nueva Fila: Nombre del Evento y Proveedor -->
+            <div class="grid-2" style="margin-bottom: 15px;">
+                <div>
+                    <label>Nombre del Evento</label>
+                    <input type="text" id="nombreEvento" placeholder="Ej: Capacitación Kaizen" required>
+                </div>
+                <div>
+                    <label>Proveedor</label>
+                    <select id="proveedor" required>
+                        <option value="">-- Seleccionar --</option>
+                        <option value="La Fonda">La Fonda</option>
+                        <option value="Pollo Campero">Pollo Campero</option>
+                        <option value="Don Pollo">Don Pollo</option>
+                        <option value="Pizza Hut">Pizza Hut</option>
+                        <option value="Comedor Interno">Comedor Interno</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="grid-3">
                 <div>
-                    <label>Fecha</label>
+                    <label>Fecha del Evento</label>
                     <input type="date" id="fecha" required>
                 </div>
                 <div>
@@ -203,12 +242,16 @@
                     <div id="horaError" class="error-msg"></div>
                 </div>
                 <div>
-                    <label>Cantidad de Personas (Total)</label>
-                    <input type="number" id="pax" min="1" placeholder="Ej: 10" required>
+                    <label>Cantidad de Personas</label>
+                    <input type="number" id="pax" min="1" placeholder="Ej: 25" required>
                 </div>
             </div>
             <br>
             <div class="grid-3">
+                <div>
+                    <label>Solicitante / Gte. Área</label>
+                    <input type="text" id="solicitante" placeholder="Nombre del responsable">
+                </div>
                 <div>
                     <label>Tipo de Reunión</label>
                     <select id="tipoReunion" required>
@@ -220,8 +263,8 @@
                     </select>
                 </div>
                 <div>
-                    <label>Centro de Costo / Área</label>
-                    <input type="text" id="centroCosto" placeholder="Ej: Recursos Humanos">
+                    <label>Centro de Costo</label>
+                    <input type="text" id="centroCosto" placeholder="Ej: Producción / RH">
                 </div>
             </div>
         </div>
@@ -242,60 +285,65 @@
                     🍪 Refrigerio<br><small>24 Horas</small>
                 </div>
             </div>
-            <p class="helper-text" id="mealHelper">Selecciona una hora arriba para habilitar los menús.</p>
+            <p class="helper-text" id="mealHelper">Selecciona una hora arriba para habilitar los menús disponibles.</p>
         </div>
 
         <div class="form-section" id="menuBuilderSection" style="display:none;">
-            <div class="section-header">3. Define las Cantidades</div>
-            <p style="margin-bottom: 20px;">Ingresa la cantidad requerida para cada ítem. Deja en 0 lo que no necesites.</p>
+            <div class="section-header">3. Selección de Combos / Menús</div>
+            <p style="margin-bottom: 20px;">Indica la cantidad requerida para cada tipo de menú.</p>
 
-            <div id="dynamicMenuGrid" class="grid-3">
-                </div>
+            <div id="dynamicMenuGrid" class="grid-2">
+                <!-- Se llena dinámicamente con JS -->
+            </div>
 
             <div style="margin-top: 25px;">
                 <label>Observaciones o Dietas Especiales</label>
-                <textarea id="notas" rows="3" placeholder="Ej: 2 personas son alérgicas al maní..."></textarea>
+                <textarea id="notas" rows="3" placeholder="Ej: 2 personas sin gluten, 1 sin cebolla..."></textarea>
             </div>
 
             <div id="liveSummary" class="total-summary">
                 <strong>Resumen del Pedido:</strong>
                 <ul id="summaryList" style="margin: 10px 0; padding-left: 20px;"></ul>
                 <div id="warningPax" style="color: #e65100; font-weight: bold; display:none;">
-                    ⚠️ Atención: La suma de platos fuertes no coincide con la cantidad de personas.
+                    ⚠️ Atención: La cantidad de menús no coincide con el número de personas.
                 </div>
             </div>
         </div>
 
-        <button type="submit" class="submit-btn">Confirmar Pedido y Generar PDF</button>
+        <button type="submit" class="submit-btn">Confirmar Pedido y Enviar Correo</button>
+        <p style="text-align: center; font-size: 0.9rem; color: #666; margin-top: 10px;">
+            ℹ️ Al confirmar, se descargará un PDF y se abrirá tu correo para enviarlo.
+        </p>
     </form>
 </div>
 
 <script>
-    // --- DATOS DEL MENÚ ---
+    // --- DATOS DEL MENÚ (Combos Preformados) ---
     const menusDB = {
-        desayuno: {
-            "Platos Fuertes": ["Huevos Revueltos", "Huevos Estrellados", "Omelette de Jamón", "Desayuno Típico"],
-            "Guarniciones": ["Casamiento (Arroz/Frijol)", "Frijoles Fritos", "Plátano Frito", "Queso/Crema", "Pan Tostado"],
-            "Bebidas": ["Café Negro", "Café con Leche", "Jugo de Naranja", "Té", "Gaseosa"],
-            "Postre": ["Fruta de Temporada", "Yogurt"]
-        },
-        almuerzo: {
-            "Platos Fuertes": ["Pollo Encebollado", "Carne Asada", "Filete de Pescado", "Pasta Alfredo"],
-            "Guarniciones": ["Arroz Blanco", "Vegetales Salteados", "Puré de Papas", "Ensalada Verde"],
-            "Bebidas": ["Refresco Natural", "Soda", "Agua", "Té Helado"],
-            "Postre": ["Fruta", "Gelatina", "Pastel"]
-        },
-        cena: {
-            "Platos Fuertes": ["Tacos de Pollo", "Pupusas (Revueltas)", "Pupusas (Queso)", "Sándwich Club"],
-            "Guarniciones": ["Salsa y Curtido", "Papas Fritas", "Escabeche"],
-            "Bebidas": ["Café", "Chocolate Caliente", "Té"]
-        },
-        refrigerio: {
-            "Snacks Salados": ["Sandwich de Jamón", "Pastelito de Carne", "Croissant"],
-            "Snacks Dulces": ["Galleta", "Muffin", "Yogurt con Granola"],
-            "Bebidas": ["Café", "Botella de Agua", "Jugo en Caja"],
-              "Postre": ["Fruta de Temporada", "Yogurt"]
-        }
+        desayuno: [
+            { name: "Desayuno Típico", desc: "Huevos revueltos con vegetales, frijoles fritos, plátano frito, queso duro, crema y pan francés." },
+            { name: "Desayuno Americano", desc: "Huevos estrellados, tocino crujiente, hash browns, tostadas con mantequilla y mermelada." },
+            { name: "Desayuno Light", desc: "Omelette de claras con espinaca y hongos, porción de fruta fresca, yogurt y pan integral tostado." },
+            { name: "Tamal de Pollo", desc: "Tamal de pollo tradicional, porción de frijoles refritos y pan." }
+        ],
+        almuerzo: [
+            { name: "Menú Ejecutivo de Pollo", desc: "Pollo rostizado o encebollado, arroz jardinero, ensalada fresca y tortillas." },
+            { name: "Menú Típico de Carne", desc: "Carne asada, chirmol, casamiento (arroz y frijoles), chorizo y aguacate." },
+            { name: "Menú Pasta Italiana", desc: "Pasta Alfredo con pollo o bolognesa, ensalada césar y pan con ajo." },
+            { name: "Menú Económico", desc: "Pieza de pollo frito, papas fritas, ensalada de repollo y pan." }
+        ],
+        cena: [
+            { name: "Cena Típica", desc: "Plátanos fritos con frijoles y crema, huevos al gusto y pan." },
+            { name: "Combo Pupusas", desc: "3 Pupusas (revueltas/queso) con salsa y curtido." },
+            { name: "Tacos Mexicanos", desc: "3 Tacos de res o pollo, cebolla, cilantro, salsa verde y limón." },
+            { name: "Sándwich Club", desc: "Sándwich de jamón, queso, pollo y tocino con papas fritas." }
+        ],
+        refrigerio: [
+            { name: "Refrigerio Dulce", desc: "Porción de pastel o repostería dulce con café o té." },
+            { name: "Refrigerio Salado", desc: "Panini o croissant de jamón y queso con bebida fría." },
+            { name: "Fruta y Yogurt", desc: "Coctel de frutas de temporada con granola y miel." },
+            { name: "Café Break Básico", desc: "Galletas variadas, café negro y agua." }
+        ]
     };
 
     // --- VARIABLES GLOBALES ---
@@ -319,7 +367,6 @@
         // Reset
         mealBtns.forEach(btn => {
             btn.classList.remove('active-time', 'selected');
-            // btn.onclick = null; // Remove old listeners ideally, but we handle logic inside
         });
         menuSection.style.display = 'none';
         currentMealType = null;
@@ -364,51 +411,48 @@
         });
     });
 
-    // --- 3. RENDERIZADO DE INPUTS ---
+    // --- 3. RENDERIZADO DE INPUTS (COMBOS) ---
     function renderMenuInputs(type) {
         menuSection.style.display = 'block';
         gridContainer.innerHTML = '';
         summaryList.innerHTML = '';
         liveSummary.style.display = 'none';
 
-        const data = menusDB[type];
+        const items = menusDB[type];
 
-        // Crear columnas por categoría (Platos, Bebidas, etc.)
-        for (const [category, items] of Object.entries(data)) {
-            const col = document.createElement('div');
-            col.className = 'menu-category';
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'combo-item';
+
+            const header = document.createElement('div');
+            header.className = 'combo-header';
 
             const title = document.createElement('div');
-            title.className = 'category-title';
-            title.textContent = category;
-            col.appendChild(title);
+            title.className = 'combo-title';
+            title.textContent = item.name;
 
-            items.forEach(item => {
-                const row = document.createElement('div');
-                row.className = 'item-row';
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'item-qty';
+            input.min = '0';
+            input.placeholder = '0';
+            input.dataset.name = item.name;
+            input.dataset.desc = item.desc;
 
-                const label = document.createElement('span');
-                label.className = 'item-name';
-                label.textContent = item;
+            // Evento para actualizar resumen
+            input.addEventListener('input', updateSummary);
 
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.className = 'item-qty';
-                input.min = '0';
-                input.value = ''; // Empty by default
-                input.placeholder = '0';
-                input.dataset.name = item;
+            header.appendChild(title);
+            header.appendChild(input);
 
-                // Evento para actualizar resumen
-                input.addEventListener('input', updateSummary);
+            const desc = document.createElement('div');
+            desc.className = 'combo-desc';
+            desc.textContent = item.desc;
 
-                row.appendChild(label);
-                row.appendChild(input);
-                col.appendChild(row);
-            });
-
-            gridContainer.appendChild(col);
-        }
+            card.appendChild(header);
+            card.appendChild(desc);
+            gridContainer.appendChild(card);
+        });
     }
 
     // --- 4. ACTUALIZAR RESUMEN EN VIVO ---
@@ -423,8 +467,6 @@
             if (val > 0) {
                 hasItems = true;
                 summaryHTML += `<li><strong>${val}</strong> x ${input.dataset.name}</li>`;
-                // Simple lógica para contar platos principales (aproximado)
-                // En un sistema real, marcaríamos qué items son "Principales" en la BD
                 totalPlates += val;
             }
         });
@@ -432,6 +474,16 @@
         if (hasItems) {
             liveSummary.style.display = 'block';
             summaryList.innerHTML = summaryHTML;
+
+            // Validar vs Pax
+            const pax = parseInt(document.getElementById('pax').value) || 0;
+            const warning = document.getElementById('warningPax');
+            if(pax > 0 && totalPlates !== pax) {
+                warning.style.display = 'block';
+                warning.textContent = `⚠️ Cantidad de menús (${totalPlates}) no coincide con Personas (${pax}).`;
+            } else {
+                warning.style.display = 'none';
+            }
         } else {
             liveSummary.style.display = 'none';
         }
@@ -449,19 +501,24 @@
         inputs.forEach(input => {
             const val = parseInt(input.value);
             if (val > 0) {
-                orderDetails.push(`${val} x ${input.dataset.name}`);
-                tableData.push([input.dataset.name, val]);
+                const lineItem = `${val} x ${input.dataset.name}`;
+                orderDetails.push(lineItem);
+                // Table row: Item, Desc, Qty
+                tableData.push([input.dataset.name, input.dataset.desc, val]);
             }
         });
 
         if (orderDetails.length === 0) {
-            alert("⚠️ Por favor ingresa cantidades en al menos un platillo.");
+            alert("⚠️ Por favor selecciona al menos un menú.");
             return;
         }
 
+        const nombreEvento = document.getElementById('nombreEvento').value;
+        const proveedor = document.getElementById('proveedor').value;
         const fecha = document.getElementById('fecha').value;
         const hora = document.getElementById('hora').value;
         const pax = document.getElementById('pax').value;
+        const solicitante = document.getElementById('solicitante').value || 'N/A';
         const tipoReunion = document.getElementById('tipoReunion').value;
         const centroCosto = document.getElementById('centroCosto').value || 'N/A';
         const notas = document.getElementById('notas').value;
@@ -479,36 +536,46 @@
         doc.text("SOLICITUD DE ALIMENTOS", 14, 20);
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        doc.text("RH-RA-0001", 180, 20);
+        doc.text("El Salvador Socks", 160, 20);
 
         // Información del Evento
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(12);
-        doc.text("Detalles del Evento", 14, 40);
+        doc.text("Detalles del Pedido", 14, 40);
         doc.setDrawColor(200);
         doc.line(14, 42, 196, 42);
 
         doc.setFontSize(10);
-        doc.text(`Fecha: ${fecha}`, 14, 50);
-        doc.text(`Hora de Servicio: ${hora}`, 100, 50);
-        doc.text(`Personas (Pax): ${pax}`, 14, 58);
-        doc.text(`Tipo de Reunión: ${tipoReunion}`, 100, 58);
-        doc.text(`Centro de Costo: ${centroCosto}`, 14, 66);
-        doc.text(`Menú Seleccionado: ${currentMealType.toUpperCase()}`, 100, 66);
+        let y = 50;
+        doc.text(`Evento:`, 14, y);     doc.text(nombreEvento, 50, y);
+        doc.text(`Proveedor:`, 110, y); doc.text(proveedor, 140, y);
+
+        y += 8;
+        doc.text(`Fecha:`, 14, y);      doc.text(fecha, 50, y);
+        doc.text(`Hora Servicio:`, 110, y); doc.text(hora, 140, y);
+
+        y += 8;
+        doc.text(`Solicitante:`, 14, y); doc.text(solicitante, 50, y);
+        doc.text(`Tipo Reunión:`, 110, y); doc.text(tipoReunion, 140, y);
+
+        y += 8;
+        doc.text(`Centro Costo:`, 14, y); doc.text(centroCosto, 50, y);
+        doc.text(`Asistentes:`, 110, y);  doc.text(pax, 140, y);
 
         // Tabla de Pedidos
-        doc.text("Detalle del Menú", 14, 80);
+        doc.text(`Menú Seleccionado: ${currentMealType.toUpperCase()}`, 14, y + 15);
 
         doc.autoTable({
-            startY: 85,
-            head: [['Ítem / Platillo', 'Cantidad']],
+            startY: y + 20,
+            head: [['Combo / Menú', 'Descripción', 'Cant.']],
             body: tableData,
             theme: 'striped',
-            headStyles: { fillColor: [0, 91, 181] }, // Azul secundario
-            styles: { fontSize: 10 },
+            headStyles: { fillColor: [0, 91, 181] },
+            styles: { fontSize: 9 },
             columnStyles: {
-                0: { cellWidth: 140 },
-                1: { cellWidth: 40, halign: 'center' }
+                0: { cellWidth: 50, fontStyle: 'bold' },
+                1: { cellWidth: 100 },
+                2: { cellWidth: 30, halign: 'center' }
             }
         });
 
@@ -517,7 +584,7 @@
         if (notas) {
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
-            doc.text("Observaciones / Dietas Especiales:", 14, finalY);
+            doc.text("Observaciones:", 14, finalY);
             doc.setFont("helvetica", "italic");
 
             const splitNotas = doc.splitTextToSize(notas, 180);
@@ -525,20 +592,41 @@
             finalY += splitNotas.length * 5 + 10;
         }
 
-        // Pie de página / Firmas
+        // Firmas
+        finalY = Math.max(finalY, 220); // Push to bottom if space allows, or use current Y
+
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.text("__________________________", 30, finalY + 30);
         doc.text("Firma Solicitante", 45, finalY + 35);
 
         doc.text("__________________________", 130, finalY + 30);
-        doc.text("Firma Autorización", 145, finalY + 35);
+        doc.text("Autorizado por", 150, finalY + 35);
 
         // Guardar PDF
-        doc.save(`Pedido_Alimentos_${fecha}_${hora.replace(':','')}.pdf`);
+        doc.save(`Pedido_${nombreEvento}_${fecha}.pdf`);
 
-        // Mensaje de éxito
-        alert("✅ Pedido generado correctamente. Se ha descargado el PDF con el detalle.");
+        // --- ENVÍO DE CORREO (mailto) ---
+        const emailTo = "luisayalaxxx@gmail.com";
+        const subject = encodeURIComponent(`Solicitud Alimentos: ${nombreEvento} - ${proveedor}`);
+
+        const bodyText = `Hola,\n\nSe ha generado una nueva solicitud de alimentos.\n\n` +
+            `Evento: ${nombreEvento}\n` +
+            `Fecha: ${fecha} | Hora: ${hora}\n` +
+            `Proveedor: ${proveedor}\n` +
+            `Asistentes: ${pax}\n\n` +
+            `DETALLE DEL PEDIDO:\n` +
+            orderDetails.join('\n') +
+            `\n\nObservaciones: ${notas}\n\n` +
+            `⚠️ IMPORTANTE: Se ha descargado un PDF con el detalle formal. Por favor ADJUNTARLO a este correo antes de enviar.`;
+
+        const mailtoLink = `mailto:${emailTo}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+
+        // Abrir cliente de correo
+        setTimeout(() => {
+            alert("✅ PDF Generado.\n\nSe abrirá tu correo para enviar la solicitud. \n📢 RECUERDA ADJUNTAR EL PDF QUE SE ACABA DE DESCARGAR.");
+            window.location.href = mailtoLink;
+        }, 1000);
     });
 
 </script>
