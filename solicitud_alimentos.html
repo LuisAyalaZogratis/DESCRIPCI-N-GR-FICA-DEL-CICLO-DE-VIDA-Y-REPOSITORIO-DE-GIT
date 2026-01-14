@@ -4,19 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitud de Alimentos | HBI</title>
-    <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <!-- SweetAlert2 para mejores alertas -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
-            --header-green: #009688; /* Aprox green from image */
-            --header-red: #d32f2f;   /* Aprox red for logo bg */
-            --row-blue: #e3f2fd;     /* Light blue for rows */
+            --header-green: #009688;
+            --header-red: #d32f2f;
+            --row-blue: #e3f2fd;
             --text-color: #333;
-            --border-color: #ccc;
         }
 
         body {
@@ -25,6 +22,7 @@
             margin: 0;
             padding: 20px;
             color: var(--text-color);
+            padding-bottom: 80px; /* Space for fixed footer */
         }
 
         .container {
@@ -34,9 +32,10 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border-radius: 4px;
             overflow: hidden;
+            position: relative;
         }
 
-        /* HEADER STYLES */
+        /* HEADER */
         header {
             display: flex;
             border-bottom: 2px solid #ddd;
@@ -75,11 +74,12 @@
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            border-bottom: 1px solid #eee;
         }
 
         .company-name {
-            color: #0277bd; /* Blue text from image */
+            color: #0277bd;
             font-weight: bold;
             font-size: 1.2rem;
         }
@@ -92,22 +92,17 @@
             text-align: right;
         }
 
-        /* FORM STYLES */
-        .form-content {
-            padding: 20px 30px;
-        }
+        /* FORM */
+        .form-content { padding: 20px 30px; }
 
         .data-table-row {
             display: flex;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
             border-bottom: 1px solid white;
         }
 
         .data-label {
             width: 180px;
-            background-color: #f0f0f0; /* Slightly darker than row-blue for label contrast? Or keeping white? Image has label on left, value on right */
-            /* Actually image shows label text right aligned or left? Looks right aligned labels next to values in blue bar.
-               Let's try a clean Key-Value row look. */
             text-align: right;
             padding: 8px 15px;
             font-weight: bold;
@@ -125,24 +120,23 @@
             align-items: center;
         }
 
-        input[type="text"], input[type="date"], input[type="time"], input[type="number"], select {
+        input, select, textarea {
             width: 100%;
             padding: 6px 10px;
-            border: 1px solid transparent; /* Blend in */
+            border: 1px solid transparent;
             background-color: rgba(255,255,255,0.6);
             border-radius: 4px;
             font-size: 0.95rem;
             transition: all 0.2s;
         }
 
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             background-color: white;
             border-color: #2196f3;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
         }
 
-        /* MENU SECTION */
+        /* SECCIONES Y MENUS */
         .section-title {
             margin: 30px 0 15px 0;
             padding-bottom: 8px;
@@ -150,13 +144,13 @@
             color: var(--header-green);
             font-weight: bold;
             font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .meal-selector {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
+            display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;
         }
 
         .meal-btn {
@@ -167,19 +161,12 @@
             background: white;
             cursor: pointer;
             text-align: center;
-            transition: all 0.2s;
-            opacity: 0.6;
+            opacity: 0.5;
             pointer-events: none;
             font-size: 0.95rem;
         }
 
-        .meal-btn.active-time {
-            opacity: 1;
-            border-color: #999;
-            pointer-events: auto;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
+        .meal-btn.active-time { opacity: 1; pointer-events: auto; border-color: #999; }
         .meal-btn.selected {
             background-color: var(--row-blue);
             border-color: #0277bd;
@@ -190,8 +177,9 @@
 
         .combo-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 15px;
+            margin-bottom: 20px;
         }
 
         .combo-item {
@@ -200,25 +188,70 @@
             padding: 15px;
             border-radius: 6px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
         }
 
         .combo-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
         }
 
         .combo-title { font-weight: bold; color: #00796b; }
 
         .item-qty {
-            width: 70px !important;
+            width: 60px !important;
             text-align: center;
             background-color: white !important;
             border: 1px solid #ccc !important;
+            font-weight: bold;
         }
 
         .combo-desc { font-size: 0.85rem; color: #666; font-style: italic; }
+
+        .price-badge {
+            display: inline-block;
+            background: #e0f2f1;
+            color: #00695c;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 5px;
+            border: 1px solid #b2dfdb;
+        }
+
+        /* BEBIDAS */
+        .drinks-container {
+            background: #fafafa;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+        }
+        .drink-category { margin-top: 10px; margin-bottom: 5px; font-weight: bold; color: #444; }
+
+        /* ALERTAS */
+        .validation-banner {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid #ffcdd2;
+            display: none;
+        }
+
+        .validation-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid #c8e6c9;
+            display: none;
+        }
 
         button.submit-btn {
             background-color: var(--header-green);
@@ -231,14 +264,103 @@
             width: 100%;
             font-weight: bold;
             margin-top: 30px;
-            transition: background 0.3s;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        button.submit-btn:hover {
-            background-color: #00796b;
+        button.submit-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
+
+        /* COST BAR */
+        .cost-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #37474f;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .total-display {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #80cbc4;
+        }
+
+        /* BTN RESET */
+        .reset-btn {
+            background: transparent;
+            border: 1px solid #d32f2f;
+            color: #d32f2f;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .reset-btn:hover { background: #ffebee; }
+
+        /* HISTORY */
+        .history-section {
+            margin-top: 40px;
+            border-top: 2px dashed #ddd;
+            padding-top: 20px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+        .history-table th, .history-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .history-table th { background-color: #f5f5f5; font-weight: bold; }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #eee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .export-btn {
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .export-btn:hover { background-color: #1b5e20; }
+
+        .copy-btn {
+            background-color: #0288d1;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+        .copy-btn:hover { background-color: #0277bd; }
 
         .hidden { display: none; }
     </style>
@@ -248,397 +370,730 @@
 <div class="container">
     <header>
         <div class="header-title-bar">
-            <h1>FORMATO DE REQUISICION DE ALIMENTOS</h1>
+            <h1>Formato de Requisición de Alimentos</h1>
         </div>
-        <div class="header-logo-area">
-            HBI
-        </div>
+        <div class="header-logo-area">HBI</div>
     </header>
 
     <div class="sub-header">
         <div class="company-name">El Salvador Socks</div>
         <div class="meta-info">
-            <div><strong>FECHA ACTUAL:</strong> <span id="currentDateDisplay"></span></div>
-            <div style="margin-top:4px;">
-                <strong>SOLICITANTE:</strong>
-                <input type="text" id="solicitante" placeholder="Nombre..." style="width: 150px; display:inline-block; padding: 2px 5px;">
-            </div>
+            <strong>FECHA:</strong> <span id="currentDateDisplay"></span>
         </div>
     </div>
 
-    <form id="cateringForm" class="form-content">
-
-        <!-- Data Table Layout -->
-        <div class="data-table-row">
-            <div class="data-label">Nombre del Evento</div>
-            <div class="data-input">
-                <input type="text" id="nombreEvento" required>
-            </div>
+    <div class="form-content">
+        <div style="text-align: right; margin-bottom: 10px;">
+             <button type="button" id="btnReset" class="reset-btn">Limpiar Formulario</button>
         </div>
 
-        <div class="data-table-row">
-            <div class="data-label">Motivo</div>
-            <div class="data-input">
-                <input type="text" id="motivo" placeholder="Ej: Desayuno de ganadores" required>
+        <form id="cateringForm">
+            <div class="data-table-row">
+                <div class="data-label">Nombre del Evento</div>
+                <div class="data-input"><input type="text" id="nombreEvento" required></div>
             </div>
+
+            <div class="data-table-row">
+                <div class="data-label">Motivo</div>
+                <div class="data-input"><input type="text" id="motivo" placeholder="Ej: Capacitación..." required></div>
+            </div>
+
+            <div class="data-table-row">
+                <div class="data-label">Fecha y Hora</div>
+                <div class="data-input" style="gap: 10px;">
+                    <input type="date" id="fecha" required>
+                    <input type="time" id="hora" required>
+                </div>
+            </div>
+
+            <div class="data-table-row">
+                <div class="data-label">Lugar de Entrega</div>
+                <div class="data-input">
+                    <input type="text" id="lugar" placeholder="Sala o Ubicación exacta" required>
+                </div>
+            </div>
+
+            <div class="data-table-row">
+                <div class="data-label">Solicitante</div>
+                <div class="data-input">
+                    <input type="text" id="solicitanteNombre" placeholder="Nombre completo del solicitante" required>
+                </div>
+            </div>
+
+            <div class="data-table-row">
+                <div class="data-label">Centro de Costo</div>
+                <div class="data-input">
+                    <input type="text" id="centroCosto" placeholder="Código o Nombre del CC" required>
+                </div>
+            </div>
+
+            <div class="data-table-row">
+                <div class="data-label">Proveedor</div>
+                <div class="data-input">
+                    <input type="text" id="proveedor" list="proveedorList" placeholder="Seleccione..." required>
+                    <datalist id="proveedorList">
+                        <option value="La Fonda"><option value="Pollo Campero"><option value="Don Pollo"><option value="Pizza Hut"><option value="Comedor Interno">
+                    </datalist>
+                </div>
+            </div>
+
+            <div class="data-table-row">
+                <div class="data-label" style="background: #ffe0b2;">Número de Asistentes</div>
+                <div class="data-input" style="background: #fff3e0;">
+                    <input type="number" id="pax" min="1" placeholder="Cantidad total de personas" required style="font-weight:bold; font-size:1.1em;">
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>1. Selección de Tiempo de Comida</span>
+            </div>
+
+            <div class="meal-selector">
+                <div class="meal-btn" data-meal="desayuno">☕ Desayuno<br><small>07:00 - 09:00</small></div>
+                <div class="meal-btn" data-meal="almuerzo">🍽️ Almuerzo<br><small>12:00 - 14:00</small></div>
+                <div class="meal-btn" data-meal="cena">🌙 Cena<br><small>18:00 - 20:00</small></div>
+                <div class="meal-btn" data-meal="refrigerio">🍪 Refrigerio<br><small>24 Horas</small></div>
+            </div>
+
+            <div id="menuBuilderSection" class="hidden">
+                <h4 style="margin: 0 0 10px 0; color: #009688;">2. Seleccione los Platillos</h4>
+                <div id="dynamicMenuGrid" class="combo-grid"></div>
+
+                <h4 style="margin: 20px 0 10px 0; color: #009688;">3. Selección de Bebidas (Opcional)</h4>
+                <div class="drinks-container">
+                    <div class="combo-grid" id="drinksGrid">
+                        </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label style="font-weight:bold;">Observaciones / Notas:</label>
+                    <textarea id="notas" rows="2" placeholder="Especifique alergias, detalles de entrega, etc."></textarea>
+                </div>
+
+                <div id="warningPax" class="validation-banner">
+                    </div>
+                <div id="successPax" class="validation-success">
+                    ✅ Correcto: Los platillos y bebidas coinciden con la cantidad de personas.
+                </div>
+
+                <div class="section-title">Autorización</div>
+                <div style="display: flex; gap: 20px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Firma Solicitante</label>
+                        <input type="text" id="firmaSolicitanteDisplay" readonly placeholder="Se llena automáticamente con el nombre del solicitante" style="border-bottom: 2px solid #333; background: #eee; font-style:italic;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Firma Autorizada (Superintendent)</label>
+                        <input type="text" value="Claros Pineda, Denis Meljanic" readonly style="background: #e0e0e0; color: #555; cursor: not-allowed; font-weight: bold;">
+                        <small style="display:block; margin-top:2px;">Human Resources Superintendent</small>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSubmit" class="submit-btn" disabled>Generar PDF y Enviar</button>
+                <button type="button" id="btnCopy" class="copy-btn hidden">📋 Copiar Resumen</button>
+            </div>
+        </form>
+
+        <!-- HISTORIAL DE FACTURAS -->
+        <div class="history-section">
+            <h3 style="color: #455a64;">📂 Historial de Requisiciones (Corte de Pagos)</h3>
+            <p style="font-size:0.9rem; color:#666;">Filtre por fecha para generar el reporte de facturas pendientes.</p>
+
+            <div class="filters">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label>Desde:</label>
+                    <input type="date" id="filterStart" style="width: auto;">
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label>Hasta:</label>
+                    <input type="date" id="filterEnd" style="width: auto;">
+                </div>
+                <button type="button" id="btnFilter" style="padding: 6px 12px; cursor: pointer;">Filtrar</button>
+                <button type="button" id="btnExport" class="export-btn">📥 Exportar Reporte</button>
+            </div>
+
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Fecha Evento</th>
+                        <th>Evento / Motivo</th>
+                        <th>Centro Costo</th>
+                        <th>Proveedor</th>
+                        <th>Total ($)</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr><td colspan="5" style="text-align:center;">No hay registros</td></tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4" style="text-align:right;">TOTAL PERIODO:</th>
+                        <th id="historyTotal">$0.00</th>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
+    </div>
+</div>
 
-        <div class="data-table-row">
-            <div class="data-label">Fecha de Evento</div>
-            <div class="data-input">
-                <input type="date" id="fecha" required>
-            </div>
-        </div>
-
-        <div class="data-table-row">
-            <div class="data-label">Gte. de Área</div>
-            <div class="data-input">
-                <input type="text" id="gteArea" placeholder="Nombre del Gerente de Área" required>
-            </div>
-        </div>
-
-        <div class="data-table-row">
-            <div class="data-label">Gte. de Planta</div>
-            <div class="data-input">
-                <input type="text" id="gtePlanta" placeholder="Nombre del Gerente de Planta" required>
-            </div>
-        </div>
-
-        <div class="data-table-row">
-            <div class="data-label">Proveedor</div>
-            <div class="data-input">
-                <!-- Campo libre como solicitado -->
-                <input type="text" id="proveedor" list="proveedorList" placeholder="Escriba o seleccione..." required>
-                <datalist id="proveedorList">
-                    <option value="La Fonda">
-                    <option value="Pollo Campero">
-                    <option value="Don Pollo">
-                    <option value="Pizza Hut">
-                    <option value="Comedor Interno">
-                </datalist>
-            </div>
-        </div>
-
-        <div class="data-table-row">
-            <div class="data-label">Número de Asistentes</div>
-            <div class="data-input">
-                <input type="number" id="pax" min="1" required>
-            </div>
-        </div>
-
-        <!-- Additional Fields hidden in layout but useful -->
-        <div style="display: flex; gap: 20px; margin-top: 10px;">
-            <div style="flex: 1;">
-                <label style="font-size:0.85rem; font-weight:bold; color:#666;">Hora de Servicio</label>
-                <input type="time" id="hora" required style="border:1px solid #ccc; background:white;">
-            </div>
-            <div style="flex: 1;">
-                <label style="font-size:0.85rem; font-weight:bold; color:#666;">Centro de Costo</label>
-                <input type="text" id="centroCosto" placeholder="Ej: Producción" style="border:1px solid #ccc; background:white;">
-            </div>
-            <div style="flex: 1;">
-                <label style="font-size:0.85rem; font-weight:bold; color:#666;">Tipo de Reunión</label>
-                <select id="tipoReunion" required style="border:1px solid #ccc; background:white;">
-                    <option value="Trabajo">Reunión de Trabajo</option>
-                    <option value="Capacitacion">Capacitación</option>
-                    <option value="Visita">Visita</option>
-                    <option value="Auditoria">Auditoría</option>
-                </select>
-            </div>
-        </div>
-
-
-        <div class="section-title">Selección de Menú</div>
-
-        <div class="meal-selector">
-            <div class="meal-btn" data-meal="desayuno" id="btnDesayuno">☕ Desayuno<br><small>07:00 - 09:00</small></div>
-            <div class="meal-btn" data-meal="almuerzo" id="btnAlmuerzo">🍽️ Almuerzo<br><small>12:00 - 14:00</small></div>
-            <div class="meal-btn" data-meal="cena" id="btnCena">🌙 Cena<br><small>18:00 - 20:00</small></div>
-            <div class="meal-btn" data-meal="refrigerio" id="btnRefrigerio">🍪 Refrigerio<br><small>24 Horas</small></div>
-        </div>
-
-        <div id="menuBuilderSection" class="hidden">
-            <div id="dynamicMenuGrid" class="combo-grid"></div>
-
-            <div style="margin-top: 20px;">
-                <label style="font-weight:bold;">Observaciones</label>
-                <textarea id="notas" rows="2" style="width:100%; border:1px solid #ccc; border-radius:4px; padding:10px;"></textarea>
-            </div>
-
-            <div id="warningPax" style="color: #d32f2f; font-weight: bold; margin-top:10px; display:none;">
-                ⚠️ La cantidad de menús no coincide con el número de asistentes.
-            </div>
-        </div>
-
-        <button type="submit" class="submit-btn">Generar Requisición y Enviar</button>
-    </form>
+<div class="cost-bar" id="costBar" style="display:none;">
+    <div>Estimado del Pedido:</div>
+    <div class="total-display" id="totalCostDisplay">$0.00</div>
 </div>
 
 <script>
-    // --- UTILS ---
-    function sanitize(str) {
-        if(!str) return "";
-        const temp = document.createElement('div');
-        temp.textContent = str;
-        return temp.innerHTML;
-    }
-
-    // Set Current Date
-    const now = new Date();
-    document.getElementById('currentDateDisplay').textContent = now.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    // Validate Date (No Past Dates)
-    const dateInput = document.getElementById('fecha');
-    dateInput.min = new Date().toISOString().split("T")[0];
-
-    // --- MENUS DB ---
+    // --- CONFIGURACIÓN Y DATOS ---
     const menusDB = {
         desayuno: [
-            { name: "Desayuno Típico", desc: "Huevos, frijoles, plátano, queso, crema, pan." },
-            { name: "Desayuno Americano", desc: "Huevos, tocino, hash browns, tostadas." },
-            { name: "Desayuno Light", desc: "Omelette claras, fruta, yogurt, pan integral." },
-            { name: "Tamal de Pollo", desc: "Tamal, frijoles, pan." }
+            { name: "Desayuno Típico", price: 3.50, desc: "Huevos, frijoles, plátano, queso, crema, pan." },
+            { name: "Desayuno Americano", price: 4.00, desc: "Huevos, tocino, hash browns, tostadas." },
+            { name: "Desayuno Light", price: 3.75, desc: "Omelette claras, fruta, yogurt, pan integral." },
+            { name: "Tamal de Pollo", price: 2.50, desc: "Tamal, frijoles, pan." }
         ],
         almuerzo: [
-            { name: "Pollo Encebollado", desc: "Arroz, ensalada, tortillas." },
-            { name: "Carne Asada", desc: "Chirmol, casamiento, chorizo, aguacate." },
-            { name: "Pasta Alfredo", desc: "Pollo, ensalada césar, pan con ajo." },
-            { name: "Pollo Frito", desc: "Papas fritas, ensalada, pan." }
+            { name: "Pollo Encebollado", price: 5.50, desc: "Arroz, ensalada fresca, tortillas." },
+            { name: "Carne Asada", price: 6.50, desc: "Chirmol, casamiento, chorizo, aguacate." },
+            { name: "Pasta Alfredo", price: 6.00, desc: "Pollo a la plancha, pan con ajo." },
+            { name: "Pollo Frito", price: 5.50, desc: "Papas fritas, ensalada, pan." },
+            { name: "Lasaña de Carne", price: 6.25, desc: "Ensalada verde, pan con ajo." }
         ],
         cena: [
-            { name: "Cena Típica", desc: "Plátanos, frijoles, huevos, pan." },
-            { name: "Pupusas", desc: "3 Pupusas, salsa, curtido." },
-            { name: "Tacos", desc: "3 Tacos, cebolla, cilantro." },
-            { name: "Sándwich", desc: "Club Sándwich, papas." }
+            { name: "Cena Típica", price: 4.00, desc: "Plátanos, frijoles, huevos, pan." },
+            { name: "Pupusas (3 unid)", price: 3.00, desc: "Revueltas o Queso, salsa, curtido." },
+            { name: "Tacos Mexicanos", price: 5.00, desc: "3 Tacos de res, cebolla, cilantro." },
+            { name: "Club Sándwich", price: 5.50, desc: "Papas fritas, aderezo." }
         ],
         refrigerio: [
-            { name: "Pastel y Café", desc: "Porción dulce." },
-            { name: "Panini", desc: "Jamón y queso." },
-            { name: "Fruta", desc: "Coctel con miel." },
-            { name: "Galletas", desc: "Surtido básico." }
+            { name: "Pastel y Café", price: 2.50, desc: "Porción dulce." },
+            { name: "Panini Jamón/Queso", price: 3.50, desc: "Caliente." },
+            { name: "Coctel de Frutas", price: 2.75, desc: "Miel y granola." },
+            { name: "Galletas Variadas", price: 1.50, desc: "Surtido básico." }
         ]
     };
 
-    // --- VARIABLES ---
+    const bebidasDB = [
+        { category: "Gaseosas", price: 1.00, items: ["Coca-Cola", "Coca-Cola Zero", "Sprite", "Fanta Naranja", "Uva", "Fresa", "Ginger Ale"] },
+        { category: "Jugos / Naturales", price: 1.25, items: ["Jugo de Naranja", "Jugo de Manzana", "Jugo de Melocotón", "Jugo de Piña", "Té Helado", "Agua Embotellada"] }
+    ];
+
+    // --- INICIALIZACIÓN ---
+    const now = new Date();
+    document.getElementById('currentDateDisplay').textContent = now.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('fecha').min = now.toISOString().split("T")[0];
+
+    // --- VARIABLES GLOBALES ---
     const timeInput = document.getElementById('hora');
+    const paxInput = document.getElementById('pax');
+    const solicitanteInput = document.getElementById('solicitanteNombre');
     const mealBtns = document.querySelectorAll('.meal-btn');
     const menuSection = document.getElementById('menuBuilderSection');
-    const gridContainer = document.getElementById('dynamicMenuGrid');
-    let currentMealType = null;
+    const btnSubmit = document.getElementById('btnSubmit');
+    const btnCopy = document.getElementById('btnCopy');
+    const costBar = document.getElementById('costBar');
+    const totalCostDisplay = document.getElementById('totalCostDisplay');
 
-    // --- LOGIC ---
+    let currentMealType = null;
+    let lastOrderSummary = "";
+
+    // --- AUTO-SAVE / DRAFT ---
+    const DRAFT_KEY = 'hbi_catering_draft';
+    const HISTORY_KEY = 'hbi_catering_history';
+
+    // Función para guardar el borrador
+    function saveDraft() {
+        const data = {
+            nombreEvento: document.getElementById('nombreEvento').value,
+            motivo: document.getElementById('motivo').value,
+            fecha: document.getElementById('fecha').value,
+            hora: document.getElementById('hora').value,
+            lugar: document.getElementById('lugar').value,
+            solicitanteNombre: document.getElementById('solicitanteNombre').value,
+            centroCosto: document.getElementById('centroCosto').value,
+            proveedor: document.getElementById('proveedor').value,
+            pax: document.getElementById('pax').value,
+            notas: document.getElementById('notas').value
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    }
+
+    // Función para cargar el borrador
+    function loadDraft() {
+        const saved = localStorage.getItem(DRAFT_KEY);
+        if (saved) {
+            const data = JSON.parse(saved);
+            document.getElementById('nombreEvento').value = data.nombreEvento || '';
+            document.getElementById('motivo').value = data.motivo || '';
+            document.getElementById('fecha').value = data.fecha || '';
+            document.getElementById('hora').value = data.hora || '';
+            document.getElementById('lugar').value = data.lugar || '';
+            document.getElementById('solicitanteNombre').value = data.solicitanteNombre || '';
+            document.getElementById('centroCosto').value = data.centroCosto || '';
+            document.getElementById('proveedor').value = data.proveedor || '';
+            document.getElementById('pax').value = data.pax || '';
+            document.getElementById('notas').value = data.notas || '';
+
+            // Disparar eventos para actualizar UI
+            if(data.solicitanteNombre) solicitanteInput.dispatchEvent(new Event('input'));
+            if(data.hora) timeInput.dispatchEvent(new Event('change'));
+            if(data.pax) paxInput.dispatchEvent(new Event('input'));
+        }
+    }
+
+    // Escuchar cambios en todos los inputs para guardar
+    document.querySelectorAll('input, textarea').forEach(el => {
+        el.addEventListener('input', saveDraft);
+        el.addEventListener('change', saveDraft);
+    });
+
+    // Cargar al inicio
+    loadDraft();
+    renderHistory(); // Renderizar historial al inicio
+
+    // Limpiar formulario
+    document.getElementById('btnReset').addEventListener('click', () => {
+        if(confirm("¿Seguro que desea borrar todo el formulario?")) {
+            localStorage.removeItem(DRAFT_KEY);
+            location.reload();
+        }
+    });
+
+
+    // --- HISTORY MANAGER ---
+    function addToHistory(orderData) {
+        let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        history.push(orderData);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        const tbody = document.getElementById('historyBody');
+        const startFilter = document.getElementById('filterStart').value;
+        const endFilter = document.getElementById('filterEnd').value;
+
+        tbody.innerHTML = '';
+        let total = 0;
+        let count = 0;
+
+        // Ordenar por fecha desc
+        history.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+        history.forEach(item => {
+            // Filtro de Fechas
+            if (startFilter && item.fecha < startFilter) return;
+            if (endFilter && item.fecha > endFilter) return;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.fecha}</td>
+                <td><strong>${item.evento}</strong><br><small>${item.motivo}</small></td>
+                <td>${item.centroCosto}</td>
+                <td>${item.proveedor}</td>
+                <td>$${item.total.toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+            total += item.total;
+            count++;
+        });
+
+        if (count === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No se encontraron registros para este periodo.</td></tr>';
+        }
+
+        document.getElementById('historyTotal').textContent = "$" + total.toFixed(2);
+    }
+
+    document.getElementById('btnFilter').addEventListener('click', renderHistory);
+
+    document.getElementById('btnExport').addEventListener('click', function() {
+        const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        const startFilter = document.getElementById('filterStart').value;
+        const endFilter = document.getElementById('filterEnd').value;
+
+        // Filtrar
+        const filtered = history.filter(item => {
+            if (startFilter && item.fecha < startFilter) return false;
+            if (endFilter && item.fecha > endFilter) return false;
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            alert("No hay datos para exportar en este rango.");
+            return;
+        }
+
+        // CSV Header
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Fecha,Evento,Motivo,Solicitante,CentroCosto,Proveedor,Total\n";
+
+        filtered.forEach(item => {
+            const row = [
+                item.fecha,
+                `"${item.evento}"`,
+                `"${item.motivo}"`,
+                `"${item.solicitante}"`,
+                item.centroCosto,
+                item.proveedor,
+                item.total.toFixed(2)
+            ].join(",");
+            csvContent += row + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Reporte_Corte_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // --- EVENT LISTENERS ---
+
+    // Auto-firma visual
+    solicitanteInput.addEventListener('input', function() {
+        document.getElementById('firmaSolicitanteDisplay').value = this.value;
+    });
+
+    // 1. Detectar Hora para habilitar botones
     timeInput.addEventListener('change', function() {
         const time = this.value;
         if(!time) return;
         const [h, m] = time.split(':').map(Number);
         const floatTime = h + m/60;
 
-        // Reset
         mealBtns.forEach(btn => btn.classList.remove('active-time', 'selected'));
         menuSection.classList.add('hidden');
+        costBar.style.display = 'none';
+        btnCopy.classList.add('hidden');
         currentMealType = null;
 
         let activeMeals = [];
-        if (floatTime >= 6 && floatTime < 10) activeMeals.push('desayuno');
+        if (floatTime >= 6 && floatTime < 11) activeMeals.push('desayuno');
         if (floatTime >= 11 && floatTime < 15) activeMeals.push('almuerzo');
         if (floatTime >= 17 && floatTime < 21) activeMeals.push('cena');
-        activeMeals.push('refrigerio');
+        activeMeals.push('refrigerio'); // Siempre activo
 
         activeMeals.forEach(type => {
             const btn = document.querySelector(`.meal-btn[data-meal="${type}"]`);
             if(btn) btn.classList.add('active-time');
         });
+
+        validateTotal();
     });
 
+    // 2. Selección de Tipo de Comida
     mealBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             if (!this.classList.contains('active-time')) return;
             mealBtns.forEach(b => b.classList.remove('selected'));
             this.classList.add('selected');
             currentMealType = this.getAttribute('data-meal');
-            renderMenuInputs(currentMealType);
+            renderMenus(currentMealType);
         });
     });
 
-    function renderMenuInputs(type) {
-        menuSection.classList.remove('hidden');
-        gridContainer.innerHTML = '';
+    // 3. Validar al cambiar número de asistentes
+    paxInput.addEventListener('input', validateTotal);
 
+    // --- FUNCIONES DE RENDERIZADO ---
+
+    function renderMenus(type) {
+        menuSection.classList.remove('hidden');
+        costBar.style.display = 'flex';
+        btnCopy.classList.add('hidden');
+
+        const foodGrid = document.getElementById('dynamicMenuGrid');
+        foodGrid.innerHTML = '';
+
+        // Render Comida
         menusDB[type].forEach(item => {
             const card = document.createElement('div');
             card.className = 'combo-item';
             card.innerHTML = `
                 <div class="combo-header">
-                    <span class="combo-title">${item.name}</span>
-                    <input type="number" class="item-qty" min="0" placeholder="0" data-name="${item.name}" data-desc="${item.desc}">
+                    <span class="combo-title">${item.name} <span class="price-badge">$${item.price.toFixed(2)}</span></span>
+                    <input type="number" class="item-qty food-qty" min="0" placeholder="0" data-name="${item.name}" data-price="${item.price}" data-desc="${item.desc}">
                 </div>
                 <div class="combo-desc">${item.desc}</div>
             `;
-            gridContainer.appendChild(card);
-
-            // Add validation listener
-            card.querySelector('input').addEventListener('input', validatePax);
+            foodGrid.appendChild(card);
+            card.querySelector('input').addEventListener('input', validateTotal);
         });
+
+        // Render Bebidas (Solo se hace una vez o se refresca)
+        const drinkGrid = document.getElementById('drinksGrid');
+        drinkGrid.innerHTML = '';
+        bebidasDB.forEach(group => {
+            group.items.forEach(drinkName => {
+                const card = document.createElement('div');
+                card.className = 'combo-item';
+                card.style.borderColor = '#b2dfdb';
+                card.innerHTML = `
+                    <div class="combo-header">
+                        <span class="combo-title" style="color:#004d40;">${drinkName} <span class="price-badge">$${group.price.toFixed(2)}</span></span>
+                        <input type="number" class="item-qty drink-qty" min="0" placeholder="0" data-name="${drinkName}" data-price="${group.price}" data-type="Bebida">
+                    </div>
+                    <div class="combo-desc">${group.category}</div>
+                `;
+                drinkGrid.appendChild(card);
+                card.querySelector('input').addEventListener('input', validateTotal);
+            });
+        });
+
+        validateTotal();
     }
 
-    function validatePax() {
-        const pax = parseInt(document.getElementById('pax').value) || 0;
-        let total = 0;
-        document.querySelectorAll('.item-qty').forEach(i => total += (parseInt(i.value)||0));
+    // --- LÓGICA DE VALIDACIÓN Y COSTO ---
+    function validateTotal() {
+        const pax = parseInt(paxInput.value) || 0;
+        let totalFood = 0;
+        let totalDrinks = 0;
+        let totalCost = 0;
 
-        const warning = document.getElementById('warningPax');
-        if (pax > 0 && total !== pax) {
-            warning.style.display = 'block';
-            warning.textContent = `⚠️ Seleccionados: ${total} | Asistentes: ${pax}`;
+        // Sumar comida
+        document.querySelectorAll('.food-qty').forEach(input => {
+            const q = parseInt(input.value) || 0;
+            const p = parseFloat(input.dataset.price) || 0;
+            totalFood += q;
+            totalCost += (q * p);
+        });
+
+        // Sumar bebidas
+        document.querySelectorAll('.drink-qty').forEach(input => {
+            const q = parseInt(input.value) || 0;
+            const p = parseFloat(input.dataset.price) || 0;
+            totalDrinks += q;
+            totalCost += (q * p);
+        });
+
+        // Actualizar Costo UI
+        totalCostDisplay.textContent = "$" + totalCost.toFixed(2);
+
+        const warningBanner = document.getElementById('warningPax');
+        const successBanner = document.getElementById('successPax');
+        let isValid = false;
+        let message = "";
+
+        // Reglas de validación
+        if (pax <= 0) {
+            message = "⚠️ Ingrese el número de asistentes.";
+        } else if (totalFood !== pax) {
+            message = `⚠️ Platillos incorrectos: Seleccionados ${totalFood}, Asistentes ${pax}. Deben ser iguales.`;
+        } else if (totalDrinks > 0 && totalDrinks !== totalFood) {
+            message = `⚠️ Bebidas incorrectas: Ha seleccionado ${totalDrinks} bebidas para ${totalFood} platillos. Deben coincidir.`;
         } else {
-            warning.style.display = 'none';
+            isValid = true;
+        }
+
+        if (isValid) {
+            warningBanner.style.display = 'none';
+            successBanner.style.display = 'block';
+            btnSubmit.disabled = false;
+        } else {
+            warningBanner.style.display = 'block';
+            warningBanner.textContent = message;
+            successBanner.style.display = 'none';
+            btnSubmit.disabled = true;
         }
     }
 
-    // --- SUBMIT ---
+    // --- GENERACIÓN DE PDF Y ENVÍO ---
     document.getElementById('cateringForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // 1. GATHER DATA
+        // 1. Recopilar Datos
         const items = [];
+        let grandTotal = 0;
+        let summaryText = "";
+
         document.querySelectorAll('.item-qty').forEach(input => {
             const val = parseInt(input.value);
-            if (val > 0) items.push({ name: input.dataset.name, desc: input.dataset.desc, qty: val });
+            const price = parseFloat(input.dataset.price);
+            if (val > 0) {
+                const sub = val * price;
+                grandTotal += sub;
+                items.push({
+                    name: input.dataset.name,
+                    desc: input.dataset.desc || input.dataset.type,
+                    qty: val,
+                    price: price,
+                    subtotal: sub
+                });
+                summaryText += `- ${val} x ${input.dataset.name}\n`;
+            }
         });
 
-        if (items.length === 0) {
-            Swal.fire('Error', 'Seleccione al menos un menú.', 'error');
-            return;
-        }
-
-        const data = {
-            evento: sanitize(document.getElementById('nombreEvento').value),
-            motivo: sanitize(document.getElementById('motivo').value),
+        const formData = {
+            evento: document.getElementById('nombreEvento').value,
+            motivo: document.getElementById('motivo').value,
             fecha: document.getElementById('fecha').value,
             hora: document.getElementById('hora').value,
-            gteArea: sanitize(document.getElementById('gteArea').value),
-            gtePlanta: sanitize(document.getElementById('gtePlanta').value),
-            proveedor: sanitize(document.getElementById('proveedor').value),
+            proveedor: document.getElementById('proveedor').value,
             pax: document.getElementById('pax').value,
-            solicitante: sanitize(document.getElementById('solicitante').value),
-            centroCosto: sanitize(document.getElementById('centroCosto').value),
-            notas: sanitize(document.getElementById('notas').value)
+            lugar: document.getElementById('lugar').value,
+            centroCosto: document.getElementById('centroCosto').value,
+            solicitante: document.getElementById('solicitanteNombre').value,
+            notas: document.getElementById('notas').value,
+            total: grandTotal
         };
 
-        // 2. GENERATE PDF
+        // Guardar en Historial
+        addToHistory(formData);
+
+        // Generar Texto para Email / Clipboard
+        lastOrderSummary = `SOLICITUD DE ALIMENTOS - HBI\n\n` +
+            `Evento: ${formData.evento}\n` +
+            `Solicitante: ${formData.solicitante}\n` +
+            `Fecha: ${formData.fecha} ${formData.hora}\n` +
+            `Proveedor: ${formData.proveedor}\n` +
+            `Asistentes: ${formData.pax}\n` +
+            `Centro de Costo: ${formData.centroCosto}\n\n` +
+            `DETALLE DEL PEDIDO:\n${summaryText}\n` +
+            `TOTAL ESTIMADO: $${grandTotal.toFixed(2)}\n\n` +
+            `Observaciones: ${formData.notas}`;
+
+        // 2. Generar PDF
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Header Bar
-        doc.setFillColor(0, 150, 136); // Green
+        // Encabezado
+        doc.setFillColor(0, 150, 136);
         doc.rect(0, 0, 210, 25, 'F');
-        doc.setFillColor(211, 47, 47); // Red Logo BG
+        doc.setFillColor(211, 47, 47);
         doc.rect(170, 0, 40, 25, 'F');
 
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
-        doc.text("FORMATO DE REQUISICION DE ALIMENTOS", 105, 16, { align: 'center' });
+        doc.text("REQUISICION DE ALIMENTOS", 105, 16, { align: 'center' });
         doc.text("HBI", 190, 16, { align: 'center' });
 
-        // Subheader Info
-        doc.setTextColor(2, 119, 189); // Blue
-        doc.setFontSize(14);
-        doc.text("El Salvador Socks", 14, 35);
-
-        doc.setFontSize(10);
+        // Info General
         doc.setTextColor(0,0,0);
-        doc.setFillColor(227, 242, 253); // Light Blue Box
-        doc.rect(120, 30, 80, 15, 'F');
-        doc.text(`FECHA ACTUAL: ${new Date().toLocaleDateString()}`, 125, 36);
-        doc.text(`SOLICITANTE: ${data.solicitante}`, 125, 41);
+        doc.setFontSize(10);
 
-        // Body Table Style
-        let y = 55;
-        const rowH = 8;
-        const col1W = 50;
-
-        function addRow(label, value) {
-            doc.setFillColor(245, 245, 245); // Label BG
-            doc.rect(14, y, col1W, rowH, 'F');
-            doc.setFillColor(227, 242, 253); // Value BG
-            doc.rect(14 + col1W, y, 130, rowH, 'F');
-
+        let y = 35;
+        const addLine = (label, val, xOffset = 0) => {
             doc.setFont("helvetica", "bold");
-            doc.text(label, 62, y + 5.5, { align: 'right' });
-
+            doc.text(label, 14 + xOffset, y);
             doc.setFont("helvetica", "normal");
-            doc.text(String(value), 66, y + 5.5);
-            y += rowH + 1;
-        }
+            doc.text(String(val).toUpperCase(), 50 + xOffset, y);
+        };
 
-        addRow("Nombre del Evento", data.evento);
-        addRow("Motivo", data.motivo);
-        addRow("Fecha de Evento", data.fecha + " " + data.hora);
-        addRow("Gte. de Área", data.gteArea);
-        addRow("Gte. de Planta", data.gtePlanta);
-        addRow("Proveedor", data.proveedor);
-        addRow("No. Asistentes", data.pax);
+        addLine("Evento:", formData.evento);
+        doc.text(`Fecha Solicitud: ${new Date().toLocaleDateString()}`, 150, y);
+        y += 7;
+        addLine("Motivo:", formData.motivo);
+        y += 7;
+        addLine("Fecha Evento:", formData.fecha + " " + formData.hora);
+        y += 7;
+        addLine("Lugar / Sala:", formData.lugar);
+        y += 7;
+        addLine("Centro de Costo:", formData.centroCosto);
+        y += 7;
+        addLine("Solicitante:", formData.solicitante);
+        y += 7;
+        addLine("Asistentes:", formData.pax);
+        addLine("Proveedor:", formData.proveedor, 80);
 
-        // Menu Table
+        // Tabla de Items
         y += 10;
-        doc.text("DETALLE DEL PEDIDO:", 14, y);
+        // Agregamos columnas de precio
+        const tableBody = items.map(i => [
+            i.qty,
+            i.name,
+            i.desc,
+            `$${i.price.toFixed(2)}`,
+            `$${i.subtotal.toFixed(2)}`
+        ]);
 
-        const tableBody = items.map(i => [i.qty, i.name, i.desc]);
+        // Fila de Total
+        tableBody.push(['', '', 'TOTAL ESTIMADO', '', `$${grandTotal.toFixed(2)}`]);
+
         doc.autoTable({
-            startY: y + 5,
-            head: [['Cant.', 'Platillo / Combo', 'Descripción']],
+            startY: y,
+            head: [['Cant.', 'Descripción', 'Detalle', 'Unitario', 'Total']],
             body: tableBody,
             theme: 'grid',
             headStyles: { fillColor: [0, 150, 136] },
             columnStyles: {
-                0: { cellWidth: 20, halign: 'center' },
-                1: { cellWidth: 50, fontStyle: 'bold' }
+                0: { halign: 'center', cellWidth: 15 },
+                3: { halign: 'right', cellWidth: 25 },
+                4: { halign: 'right', cellWidth: 25, fontStyle: 'bold' }
+            },
+            didParseCell: function (data) {
+                // Negrita para la ultima fila
+                if (data.row.index === tableBody.length - 1) {
+                    data.cell.styles.fontStyle = 'bold';
+                    data.cell.styles.fillColor = [224, 242, 241];
+                }
             }
         });
 
-        // Notes
-        if(data.notas) {
-            let finalY = doc.lastAutoTable.finalY + 10;
+        // Observaciones
+        let finalY = doc.lastAutoTable.finalY + 10;
+        if(formData.notas) {
+            doc.setFont("helvetica", "bold");
             doc.text("OBSERVACIONES:", 14, finalY);
-            doc.setFont("helvetica", "italic");
-            doc.text(data.notas, 14, finalY + 6);
+            doc.setFont("helvetica", "normal");
+            doc.text(formData.notas, 14, finalY + 5);
+            finalY += 15;
+        } else {
+            finalY += 5;
         }
 
-        // Save
-        const fileName = `Requisicion_${data.evento.replace(/\s+/g, '_')}.pdf`;
-        doc.save(fileName);
+        // --- SECCIÓN DE FIRMAS ---
+        finalY = Math.max(finalY, 240);
 
-        // 3. EMAIL WORKFLOW with INSTRUCTION MODAL
-        const emailBody = `REQUISICIÓN DE ALIMENTOS\n\n` +
-            `Evento: ${data.evento}\n` +
-            `Motivo: ${data.motivo}\n` +
-            `Fecha: ${data.fecha} ${data.hora}\n` +
-            `Proveedor: ${data.proveedor}\n` +
-            `Asistentes: ${data.pax}\n\n` +
-            `Por favor encuentre el PDF adjunto con los detalles y firmas.`;
+        doc.setLineWidth(0.5);
+        doc.line(20, finalY, 90, finalY); // Linea izquierda
+        doc.line(120, finalY, 190, finalY); // Linea derecha
 
-        const mailto = `mailto:luisayalaxxx@gmail.com?subject=Requisicion: ${data.evento}&body=${encodeURIComponent(emailBody)}`;
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+
+        // Firma Solicitante
+        doc.text(formData.solicitante.toUpperCase(), 55, finalY + 5, { align: 'center' });
+        doc.setFont("helvetica", "normal");
+        doc.text("Firma Solicitante", 55, finalY + 10, { align: 'center' });
+
+        // Firma HR
+        doc.setFont("helvetica", "bold");
+        doc.text("CLAROS PINEDA, DENIS MELJANIC", 155, finalY + 5, { align: 'center' });
+        doc.setFont("helvetica", "normal");
+        doc.text("Human Resources Superintendent", 155, finalY + 10, { align: 'center' });
+        doc.text("HR Department", 155, finalY + 14, { align: 'center' });
+
+        // Guardar
+        doc.save(`Requisicion_${formData.evento}.pdf`);
+
+        // Mostrar Botón de Copiar y Alerta
+        btnCopy.classList.remove('hidden');
+
+        const mailto = `mailto:?subject=Requisicion Alimentos: ${formData.evento}&body=${encodeURIComponent(lastOrderSummary)}`;
 
         Swal.fire({
-            title: '¡PDF Generado!',
-            html: `
-                <p>El archivo <b>${fileName}</b> se ha descargado en tu dispositivo.</p>
-                <div style="background:#e8f5e9; padding:10px; border-radius:5px; margin:15px 0; border:1px dashed #4caf50;">
-                    <strong>PASO IMPORTANTE:</strong><br>
-                    Se abrirá tu correo. Debes <u>ADJUNTAR MANUALMENTE</u> el PDF que acabas de descargar.
-                </div>
-            `,
+            title: '¡Listo!',
+            text: 'PDF generado correctamente. Costo Est: $' + grandTotal.toFixed(2),
             icon: 'success',
-            confirmButtonText: 'Entendido, Abrir Correo',
-            confirmButtonColor: '#009688'
+            showCancelButton: true,
+            confirmButtonText: 'Abrir Correo',
+            cancelButtonText: 'Cerrar'
         }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = mailto;
-            }
+            if (result.isConfirmed) window.location.href = mailto;
         });
     });
-</script>
 
+    // Botón Copiar
+    btnCopy.addEventListener('click', function() {
+        if (!lastOrderSummary) return;
+        navigator.clipboard.writeText(lastOrderSummary).then(() => {
+            Swal.fire('Copiado', 'El resumen del pedido se copió al portapapeles.', 'success');
+        });
+    });
+
+</script>
 </body>
 </html>
